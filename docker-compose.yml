@@ -1,0 +1,46 @@
+
+
+services:
+
+  api:
+    build: .
+    container_name: coderank_api
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16
+    container_name: coderank_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: coderank
+      POSTGRES_PASSWORD: coderank
+      POSTGRES_DB: coderank
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: coderank_redis
+    ports:
+      - "6379:6379"
+
+  celery_worker:
+    build: .
+    container_name: coderank_worker
+    command: celery -A app.workers.celery_app worker --loglevel=info
+    volumes:
+      - .:/code
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - postgres
