@@ -5,6 +5,9 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
+from sqlalchemy import Enum
+
+from app.models.enums import UserRole
 
 
 class User(Base):
@@ -34,6 +37,11 @@ class User(Base):
     )
 
     is_active: Mapped[bool] = mapped_column(
-        Boolean,
-        default=True,
-    )
+    Boolean,
+    default=True,
+)
+
+role: Mapped[UserRole] = mapped_column(
+    Enum(UserRole),
+    default=UserRole.USER,
+)

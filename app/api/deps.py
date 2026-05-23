@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.database import get_db
 from app.models.user import User
+from fastapi import HTTPException
 
+from app.models.enums import UserRole
 from sqlalchemy import select
 
 
@@ -51,3 +53,21 @@ async def get_current_user(
         raise credentials_exception
 
     return user
+
+def role_required(
+    allowed_roles: list[UserRole],
+):
+    def wrapper(
+        current_user: User = Depends(
+            get_current_user
+        ),
+    ):
+        if current_user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=403,
+                detail="Insufficient permissions",
+            )
+
+        return current_user
+
+    return wrapper

@@ -1,29 +1,29 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.problem import Problem
+from app.models.language import Language
 
 
-class ProblemRepository:
+class LanguageRepository:
 
     @staticmethod
     async def create(
         db: AsyncSession,
-        problem: Problem,
+        language: Language,
     ):
-        db.add(problem)
+        db.add(language)
 
         await db.commit()
-        await db.refresh(problem)
+        await db.refresh(language)
 
-        return problem
+        return language
 
     @staticmethod
     async def get_all(
         db: AsyncSession,
     ):
         result = await db.execute(
-            select(Problem)
+            select(Language)
         )
 
         return result.scalars().all()
@@ -31,11 +31,11 @@ class ProblemRepository:
     @staticmethod
     async def get_by_id(
         db: AsyncSession,
-        problem_id: str,
+        language_id: str,
     ):
         result = await db.execute(
-            select(Problem).where(
-                Problem.id == problem_id
+            select(Language).where(
+                Language.id == language_id
             )
         )
 
@@ -44,7 +44,7 @@ class ProblemRepository:
     @staticmethod
     async def delete(
         db: AsyncSession,
-        problem: Problem,
+        language: Language,
     ):
-        await db.delete(problem)
+        await db.delete(language)
         await db.commit()
