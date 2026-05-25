@@ -6,7 +6,7 @@ from fastapi import (
     status,
 )
 from app.models.enums import UserRole
-from app.api.deps import role_required
+from app.api.deps import require_roles
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
@@ -46,7 +46,7 @@ async def create_language(
     current_user: Annotated[
     User,
     Depends(
-        role_required(
+        require_roles(
             [UserRole.ADMIN]
         )
     ),
@@ -111,12 +111,12 @@ async def update_language(
     ],
     current_user: Annotated[
     User,
-    Depends(
-        role_required(
-            [UserRole.ADMIN]
-        )
-    ),
-],
+        Depends(
+            require_roles(
+                [UserRole.ADMIN]
+            )
+        ),
+    ],
 ):
     return await LanguageService.update_language(
         db,
@@ -138,7 +138,7 @@ async def delete_language(
     current_user: Annotated[
     User,
     Depends(
-        role_required(
+        require_roles(
             [UserRole.ADMIN]
         )
     ),

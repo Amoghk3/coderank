@@ -3,6 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.problem import Problem
 
+from sqlalchemy import select
+
+from app.models.problem import Problem
+from app.models.problem_tag import ProblemTag
+
+
 
 class ProblemRepository:
 
@@ -48,3 +54,42 @@ class ProblemRepository:
     ):
         await db.delete(problem)
         await db.commit()
+
+
+    @staticmethod
+    async def search_problems(
+        db,
+        difficulty: str | None = None,
+        tag: str | None = None,
+        query: str | None = None,
+    ):
+
+        stmt = select(Problem)
+
+        if difficulty:
+
+            stmt = stmt.where(
+                Problem.difficulty
+                == difficulty
+            )
+
+        if query:
+
+            stmt = stmt.where(
+                Problem.title.ilike(
+                    f"%{query}%"
+                )
+            )
+
+        if tag:
+
+            stmt = (
+                stmt.join(ProblemTag)
+                .where(
+                    ProblemTag.tag == tag
+                )
+            )
+
+        result = await db.execute(stmt)
+
+        return result.scalars().all()

@@ -3,14 +3,22 @@ from typing import Annotated
 from fastapi import (
     APIRouter,
     Depends,
+    Query,
     status,
 )
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user
+from app.api.deps import (
+    get_current_user,
+    require_roles,
+)
 
 from app.core.database import get_db
+
+from app.models.enums import (
+    UserRole,
+)
 
 from app.models.user import User
 
@@ -38,13 +46,22 @@ router = APIRouter(
 )
 async def create_problem(
     payload: ProblemCreate,
+
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                [
+                    UserRole.ADMIN,
+                    UserRole.MODERATOR,
+                ]
+            )
+        ),
+    ],
+
     db: Annotated[
         AsyncSession,
         Depends(get_db),
-    ],
-    current_user: Annotated[
-        User,
-        Depends(get_current_user),
     ],
 ):
     return await ProblemService.create_problem(
@@ -62,13 +79,35 @@ async def get_problems(
         AsyncSession,
         Depends(get_db),
     ],
-    current_user: Annotated[
-        User,
-        Depends(get_current_user),
-    ],
 ):
     return await ProblemService.get_problems(
         db,
+    )
+
+
+@router.get(
+    "/search",
+)
+async def search_problems(
+    db: Annotated[
+        AsyncSession,
+        Depends(get_db),
+    ],
+
+    difficulty: str | None = None,
+
+    tag: str | None = None,
+
+    q: str | None = Query(
+        default=None,
+    ),
+):
+
+    return await ProblemService.search_problems(
+        db,
+        difficulty,
+        tag,
+        q,
     )
 
 
@@ -78,13 +117,10 @@ async def get_problems(
 )
 async def get_problem(
     problem_id: str,
+
     db: Annotated[
         AsyncSession,
         Depends(get_db),
-    ],
-    current_user: Annotated[
-        User,
-        Depends(get_current_user),
     ],
 ):
     return await ProblemService.get_problem(
@@ -99,14 +135,24 @@ async def get_problem(
 )
 async def update_problem(
     problem_id: str,
+
     payload: ProblemUpdate,
+
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                [
+                    UserRole.ADMIN,
+                    UserRole.MODERATOR,
+                ]
+            )
+        ),
+    ],
+
     db: Annotated[
         AsyncSession,
         Depends(get_db),
-    ],
-    current_user: Annotated[
-        User,
-        Depends(get_current_user),
     ],
 ):
     return await ProblemService.update_problem(
@@ -122,16 +168,47 @@ async def update_problem(
 )
 async def delete_problem(
     problem_id: str,
+
+    current_user: Annotated[
+        User,
+        Depends(
+            require_roles(
+                [
+                    UserRole.ADMIN,
+                ]
+            )
+        ),
+    ],
+
     db: Annotated[
         AsyncSession,
         Depends(get_db),
-    ],
-    current_user: Annotated[
-        User,
-        Depends(get_current_user),
     ],
 ):
     return await ProblemService.delete_problem(
         db,
         problem_id,
+    )
+
+@router.get("/search")
+async def search_problems(
+    db: Annotated[
+        AsyncSession,
+        Depends(get_db),
+    ],
+
+    difficulty: str | None = None,
+
+    tag: str | None = None,
+
+    q: str | None = Query(
+        default=None,
+    ),
+):
+
+    return await ProblemService.search_problems(
+        db,
+        difficulty,
+        tag,
+        q,
     )

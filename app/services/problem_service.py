@@ -115,3 +115,18 @@ class ProblemService:
         return {
             "message": "Problem deleted successfully"
         }
+    
+    @staticmethod
+    async def search_problems(
+        db,
+        difficulty,
+        tag,
+        query,
+    ):
+
+        return await ProblemRepository.search_problems(
+            db,
+            difficulty,
+            tag,
+            query,
+        )

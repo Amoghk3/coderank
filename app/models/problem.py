@@ -6,6 +6,7 @@ from sqlalchemy import (
     Text,
     Integer,
     DateTime,
+    Enum,
 )
 
 from sqlalchemy.dialects.postgresql import UUID
@@ -13,6 +14,10 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import (
     Mapped,
     mapped_column,
+)
+
+from app.models.enums import (
+    ProblemDifficulty,
 )
 
 from app.models.base import Base
@@ -82,6 +87,31 @@ class Problem(Base):
     memory_limit: Mapped[int] = mapped_column(
         Integer,
         default=256,
+    )
+
+    difficulty: Mapped[ProblemDifficulty] = mapped_column(
+        Enum(ProblemDifficulty),
+        default=ProblemDifficulty.EASY,
+    )
+
+    time_limit_ms: Mapped[int] = mapped_column(
+        Integer,
+        default=2000,
+    )
+
+    memory_limit_mb: Mapped[int] = mapped_column(
+        Integer,
+        default=128,
+    )
+
+    constraints: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    examples: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(

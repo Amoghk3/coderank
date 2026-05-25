@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, UTC
 
 from sqlalchemy import (
+    Boolean,
     Text,
     Integer,
     ForeignKey,
@@ -14,6 +15,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import (
     Mapped,
     mapped_column,
+    relationship,
 )
 
 from app.models.base import Base
@@ -75,4 +77,19 @@ class Submission(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
+    )
+
+    is_judge: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+    )
+
+    execution_results = relationship(
+        "ExecutionResult",
+        backref="submission",
+    )
+
+    judge_case_results = relationship(
+        "JudgeCaseResult",
+        backref="submission",
     )

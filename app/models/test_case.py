@@ -44,7 +44,7 @@ class TestCase(Base):
 
     is_hidden: Mapped[bool] = mapped_column(
         Boolean,
-        default=True,
+        default=False,
     )
 
     points: Mapped[int] = mapped_column(

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 class TestCaseCreate(BaseModel):
     input_data: str
     expected_output: str
-    is_hidden: bool = True
+    is_hidden: bool = False
     points: int = 1
 
 
@@ -20,7 +20,7 @@ class TestCaseResponse(BaseModel):
     problem_id: str
     input_data: str
     expected_output: str
-    is_hidden: bool
+    is_hidden: bool = False
     points: int
 
     class Config:
