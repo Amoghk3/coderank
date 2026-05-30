@@ -3,13 +3,14 @@ from pydantic import (
     Field,
 )
 
+from uuid import UUID
 
 class ExecuteSubmissionRequest(
     BaseModel
 ):
-    problem_id: str
+    problem_id: UUID
 
-    language_id: str
+    language_id: UUID
 
     source_code: str = Field(
         max_length=50000,
@@ -21,9 +22,9 @@ class ExecuteSubmissionRequest(
 class JudgeSubmissionRequest(
     BaseModel
 ):
-    problem_id: str
+    problem_id: UUID
 
-    language_id: str
+    language_id: UUID
 
     source_code: str = Field(
         max_length=50000,
@@ -33,13 +34,13 @@ class JudgeSubmissionRequest(
 class SubmissionResponse(
     BaseModel
 ):
-    id: str
+    id: UUID
 
-    user_id: str
+    user_id: UUID
 
-    problem_id: str
+    problem_id: UUID
 
-    language_id: str
+    language_id: UUID
 
     custom_input: str | None
 
@@ -80,7 +81,7 @@ class JudgeCaseResultResponse(
 class SubmissionDetailResponse(
     BaseModel
 ):
-    id: str
+    id: UUID
 
     status: str
 

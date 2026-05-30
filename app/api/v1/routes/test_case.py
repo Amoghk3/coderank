@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import (
     get_current_user,
-    role_required,
+    require_roles,
 )
 
 from app.core.database import get_db
@@ -49,7 +49,7 @@ async def create_test_case(
     current_user: Annotated[
         User,
         Depends(
-            role_required(
+            require_roles(
                 [UserRole.ADMIN]
             )
         ),
@@ -118,7 +118,7 @@ async def update_test_case(
     current_user: Annotated[
         User,
         Depends(
-            role_required(
+            require_roles(
                 [UserRole.ADMIN]
             )
         ),
@@ -144,7 +144,7 @@ async def delete_test_case(
     current_user: Annotated[
         User,
         Depends(
-            role_required(
+            require_roles(
                 [UserRole.ADMIN]
             )
         ),

@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
@@ -38,7 +39,11 @@ async def register(
 
 @router.post("/login")
 async def login(
-    payload: UserLogin,
+    form_data: Annotated[
+        OAuth2PasswordRequestForm,
+        Depends(),
+    ],
+
     db: Annotated[
         AsyncSession,
         Depends(get_db),
@@ -46,7 +51,7 @@ async def login(
 ):
     return await AuthService.login(
         db,
-        payload,
+        form_data,
     )
 
 

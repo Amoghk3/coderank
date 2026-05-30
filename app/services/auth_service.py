@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import logger
@@ -72,20 +73,20 @@ class AuthService:
     @staticmethod
     async def login(
         db: AsyncSession,
-        payload: UserLogin,
+        form_data: OAuth2PasswordRequestForm,
     ):
         logger.info(
-            f"Login request received for email={payload.email}"
+            f"Login request received for email={form_data.username}"
         )
 
         user = await UserRepository.get_by_email(
             db,
-            payload.email,
+            form_data.username,
         )
 
         if not user:
             logger.warning(
-                f"Login failed. User not found: {payload.email}"
+                f"Login failed. User not found: {form_data.username}"
             )
 
             raise HTTPException(
@@ -94,11 +95,11 @@ class AuthService:
             )
 
         if not verify_password(
-            payload.password,
+            form_data.password,
             user.password_hash,
         ):
             logger.warning(
-                f"Login failed. Invalid password for: {payload.email}"
+                f"Login failed. Invalid password for: {form_data.username}"
             )
 
             raise HTTPException(
@@ -118,15 +119,8 @@ class AuthService:
         )
 
         return {
-            "message": "Login successful",
             "access_token": access_token,
             "token_type": "bearer",
-            "user": {
-                "id": str(user.id),
-                "email": user.email,
-                "username": user.username,
-                "is_active": user.is_active,
-            },
         }
 
     @staticmethod
@@ -142,6 +136,7 @@ class AuthService:
             "email": current_user.email,
             "username": current_user.username,
             "is_active": current_user.is_active,
+            "role": current_user.role,
         }
 
     @staticmethod
@@ -155,3 +150,5 @@ class AuthService:
         return {
             "message": "Logged out successfully"
         }
+    
+    

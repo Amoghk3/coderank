@@ -2,12 +2,15 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.problem import Problem
+from app.models.problem_tag import ProblemTag
 
 from sqlalchemy import select
 
 from app.models.problem import Problem
 from app.models.problem_tag import ProblemTag
-
+from app.models.enums import (
+    ProblemDifficulty,
+)
 
 
 class ProblemRepository:
@@ -19,10 +22,24 @@ class ProblemRepository:
     ):
         db.add(problem)
 
-        await db.commit()
+        await db.flush()
         await db.refresh(problem)
 
         return problem
+
+    @staticmethod
+    async def create_tags(
+        db: AsyncSession,
+        problem_id,
+        tags: list[str],
+    ):
+        for tag in tags:
+            db.add(
+                ProblemTag(
+                    problem_id=problem_id,
+                    tag=tag,
+                )
+            )
 
     @staticmethod
     async def get_all(
@@ -58,23 +75,19 @@ class ProblemRepository:
 
     @staticmethod
     async def search_problems(
-        db,
-        difficulty: str | None = None,
+        db: AsyncSession,
+        difficulty: ProblemDifficulty | None = None,
         tag: str | None = None,
         query: str | None = None,
     ):
-
         stmt = select(Problem)
 
         if difficulty:
-
             stmt = stmt.where(
-                Problem.difficulty
-                == difficulty
+                Problem.difficulty == difficulty
             )
 
         if query:
-
             stmt = stmt.where(
                 Problem.title.ilike(
                     f"%{query}%"
@@ -82,14 +95,19 @@ class ProblemRepository:
             )
 
         if tag:
-
             stmt = (
-                stmt.join(ProblemTag)
+                stmt.join(
+                    ProblemTag,
+                    Problem.id
+                    == ProblemTag.problem_id,
+                )
                 .where(
                     ProblemTag.tag == tag
                 )
             )
 
-        result = await db.execute(stmt)
+        result = await db.execute(
+            stmt
+        )
 
         return result.scalars().all()

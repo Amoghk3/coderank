@@ -31,6 +31,9 @@ from app.schemas.problem_schema import (
 from app.services.problem_service import (
     ProblemService,
 )
+from app.models.enums import (
+    ProblemDifficulty,
+)
 
 
 router = APIRouter(
@@ -85,24 +88,24 @@ async def get_problems(
     )
 
 
-@router.get(
-    "/search",
-)
+
+@router.get("/search")
 async def search_problems(
     db: Annotated[
         AsyncSession,
         Depends(get_db),
     ],
 
-    difficulty: str | None = None,
+    difficulty: ProblemDifficulty | None = None,
 
     tag: str | None = None,
 
     q: str | None = Query(
         default=None,
+        min_length=1,
+        max_length=100,
     ),
 ):
-
     return await ProblemService.search_problems(
         db,
         difficulty,

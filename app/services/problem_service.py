@@ -14,6 +14,9 @@ from app.schemas.problem_schema import (
     ProblemCreate,
     ProblemUpdate,
 )
+from app.models.enums import (
+    ProblemDifficulty,
+)
 
 
 class ProblemService:
@@ -27,14 +30,33 @@ class ProblemService:
             f"Creating problem={payload.title}"
         )
 
-        problem = Problem(
-            **payload.model_dump()
+        data = payload.model_dump()
+
+        tags = data.pop(
+            "tags",
+            [],
         )
 
-        return await ProblemRepository.create(
+        problem = Problem(
+            **data
+        )
+
+        problem = await ProblemRepository.create(
             db,
             problem,
         )
+
+        await ProblemRepository.create_tags(
+            db,
+            problem.id,
+            tags,
+        )
+
+        await db.commit()
+
+        await db.refresh(problem)
+
+        return problem
 
     @staticmethod
     async def get_problems(
@@ -116,13 +138,18 @@ class ProblemService:
             "message": "Problem deleted successfully"
         }
     
+ 
+
     @staticmethod
     async def search_problems(
-        db,
-        difficulty,
-        tag,
-        query,
+        db: AsyncSession,
+        difficulty: ProblemDifficulty | None = None,
+        tag: str | None = None,
+        query: str | None = None,
     ):
+        logger.info(
+            f"Searching problems difficulty={difficulty} tag={tag} query={query}"
+        )
 
         return await ProblemRepository.search_problems(
             db,

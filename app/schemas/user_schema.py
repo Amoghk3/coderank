@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 
+from app.models.enums import UserRole
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -21,3 +22,8 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class UpdateUserRoleRequest(
+    BaseModel
+):
+    role: UserRole

@@ -64,6 +64,9 @@ from app.core.websocket_manager import (
     manager,
 )
 
+from app.models.language import (
+    Language,
+)
 
 @celery_app.task(
     autoretry_for=(Exception,),
@@ -82,6 +85,7 @@ def execute_submission_task(
     db = SessionLocal()
 
     execution_job = None
+    submission = None
 
     try:
 
@@ -125,6 +129,9 @@ def execute_submission_task(
 
             execution_job.error_message = (
                 "Submission missing"
+            )
+            execution_job.completed_at = (
+                datetime.now(UTC)
             )
 
             db.commit()
@@ -198,6 +205,21 @@ def execute_submission_task(
 
         test_cases = query.all()
 
+        language = (
+            db.query(Language)
+            .filter(
+                Language.id
+                == submission.language_id
+            )
+            .first()
+        )
+
+        if not language:
+
+            raise Exception(
+                f"Language not found: {submission.language_id}"
+            )
+
         all_passed = True
 
         for test_case in test_cases:
@@ -205,15 +227,9 @@ def execute_submission_task(
             with execution_time_histogram.time():
 
                 result = DockerRunner.run_code(
-                    language_name=(
-                        submission.language.name
-                    ),
-                    source_code=(
-                        submission.source_code
-                    ),
-                    stdin_input=(
-                        test_case.input_data
-                    ),
+                    language_name=language.name,
+                    source_code=submission.source_code,
+                    stdin_input=test_case.input_data,
                 )
 
             execution_result = ExecutionResult(
@@ -394,6 +410,17 @@ def execute_submission_task(
                     submission.runtime_ms
                 )
 
+        asyncio.run(
+            manager.send_submission_update(
+                str(submission.id),
+                {
+                    "status": submission.status,
+                    "runtime_ms": submission.runtime_ms,
+                    "memory_kb": submission.memory_kb,
+                },
+            )
+        )
+
         execution_job.status = (
             ExecutionJobStatus.SUCCESS
         )
@@ -407,6 +434,7 @@ def execute_submission_task(
         logger.info(
             f"Execution completed job={execution_job_id}"
         )
+  
 
     except Exception as e:
 
@@ -426,27 +454,22 @@ def execute_submission_task(
                 datetime.now(UTC)
             )
 
+        if submission:
+
+            submission.status = (
+                SubmissionStatus.FAILED
+            )
+
             asyncio.run(
                 manager.send_submission_update(
                     str(submission.id),
-
                     {
-                        "status": (
-                            submission.status
-                        ),
-
-                        "runtime_ms": (
-                            submission.runtime_ms
-                        ),
-
-                        "memory_kb": (
-                            submission.memory_kb
-                        ),
+                        "status": "FAILED",
                     },
                 )
             )
 
-            db.commit()
+        db.commit()
 
         raise
 

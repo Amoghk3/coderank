@@ -42,6 +42,19 @@ class LanguageRepository:
         return result.scalar_one_or_none()
 
     @staticmethod
+    async def get_by_name(
+        db: AsyncSession,
+        name: str,
+    ):
+        result = await db.execute(
+            select(Language).where(
+                Language.name == name
+            )
+        )
+
+        return result.scalar_one_or_none()
+
+    @staticmethod
     async def delete(
         db: AsyncSession,
         language: Language,

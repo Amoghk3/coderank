@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import BaseModel
 
 
@@ -22,15 +24,20 @@ class LanguageUpdate(BaseModel):
 
 
 class LanguageResponse(BaseModel):
-    id: str
+    id: UUID
+
     name: str
     version: str
     docker_image: str
+
     compile_command: str | None
     run_command: str
+
     time_limit: int
     memory_limit: int
+
     is_active: bool
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }

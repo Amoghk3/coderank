@@ -66,6 +66,9 @@ class DockerRunner:
             command = [
                 "docker",
                 "run",
+
+                "-i",
+
                 "--rm",
 
                 "--network",

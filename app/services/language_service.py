@@ -1,4 +1,11 @@
-from fastapi import HTTPException
+from fastapi import (
+    HTTPException,
+    status,
+)
+
+from sqlalchemy.exc import (
+    IntegrityError,
+)
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,14 +34,36 @@ class LanguageService:
             f"Creating language={payload.name}"
         )
 
+        existing = await LanguageRepository.get_by_name(
+            db,
+            payload.name,
+        )
+
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Language '{payload.name}' already exists",
+            )
+
         language = Language(
             **payload.model_dump()
         )
 
-        return await LanguageRepository.create(
-            db,
-            language,
-        )
+        try:
+
+            return await LanguageRepository.create(
+                db,
+                language,
+            )
+
+        except IntegrityError:
+
+            await db.rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Language '{payload.name}' already exists",
+            )
 
     @staticmethod
     async def get_languages(
@@ -56,7 +85,7 @@ class LanguageService:
 
         if not language:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Language not found",
             )
 
@@ -75,7 +104,7 @@ class LanguageService:
 
         if not language:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Language not found",
             )
 
@@ -84,10 +113,25 @@ class LanguageService:
         )
 
         for key, value in update_data.items():
-            setattr(language, key, value)
+            setattr(
+                language,
+                key,
+                value,
+            )
 
-        await db.commit()
-        await db.refresh(language)
+        try:
+
+            await db.commit()
+            await db.refresh(language)
+
+        except IntegrityError:
+
+            await db.rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Language already exists",
+            )
 
         return language
 
@@ -103,7 +147,7 @@ class LanguageService:
 
         if not language:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Language not found",
             )
 

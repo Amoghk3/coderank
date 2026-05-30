@@ -39,9 +39,9 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(
     Boolean,
     default=True,
-)
+    )
 
-role: Mapped[UserRole] = mapped_column(
-    Enum(UserRole),
-    default=UserRole.USER,
-)
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole),
+        default=UserRole.USER,
+    )

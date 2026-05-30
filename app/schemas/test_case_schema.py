@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import BaseModel
 
 
@@ -16,12 +18,18 @@ class TestCaseUpdate(BaseModel):
 
 
 class TestCaseResponse(BaseModel):
-    id: str
-    problem_id: str
+    id: UUID
+
+    problem_id: UUID
+
     input_data: str
+
     expected_output: str
+
     is_hidden: bool = False
+
     points: int
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }
