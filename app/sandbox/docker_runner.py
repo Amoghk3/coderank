@@ -1,37 +1,11 @@
 import tempfile
 import subprocess
-
 from pathlib import Path
 
 
 class DockerRunner:
 
     EXECUTION_TIMEOUT = 2
-
-    LANGUAGE_CONFIG = {
-
-        "python": {
-            "filename": "main.py",
-
-            "image": "python:3.12-slim",
-
-            "run": [
-                "python",
-                "/code/main.py",
-            ],
-        },
-
-        "javascript": {
-            "filename": "main.js",
-
-            "image": "node:20-alpine",
-
-            "run": [
-                "node",
-                "/code/main.js",
-            ],
-        },
-    }
 
     @classmethod
     def run_code(
@@ -41,55 +15,23 @@ class DockerRunner:
         stdin_input: str = "",
     ):
 
-        config = cls.LANGUAGE_CONFIG.get(
-            language_name.lower()
-        )
-
-        if not config:
-
+        if language_name.lower() != "python":
             return {
                 "stdout": "",
-                "stderr": "Unsupported language",
+                "stderr": "Only Python enabled in local mode",
                 "exit_code": -1,
                 "timeout": False,
             }
 
         with tempfile.TemporaryDirectory() as tmpdir:
 
-            code_path = (
-                Path(tmpdir)
-                / config["filename"]
-            )
-
-            code_path.write_text(source_code)
-
-            command = [
-                "docker",
-                "run",
-
-                "-i",
-
-                "--rm",
-
-                "--network",
-                "none",
-
-                "--memory",
-                "128m",
-
-                "--cpus",
-                "0.5",
-
-                "-v",
-                f"{tmpdir}:/code",
-
-                config["image"],
-            ] + config["run"]
+            code_file = Path(tmpdir) / "main.py"
+            code_file.write_text(source_code)
 
             try:
 
                 process = subprocess.run(
-                    command,
+                    ["python", str(code_file)],
                     input=stdin_input,
                     text=True,
                     capture_output=True,
