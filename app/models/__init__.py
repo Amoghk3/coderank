@@ -4,16 +4,9 @@ from app.models.language import Language
 from app.models.problem import Problem
 from app.models.test_case import TestCase
 from app.models.submission import Submission
+from app.models.execution_result import ExecutionResult
 from app.models.execution_job import ExecutionJob
-from app.models.judge_case_result import (
-    JudgeCaseResult,
-)
-from app.models.leaderboard import (
-    Leaderboard,
-)
-from app.models.problem_tag import (
-    ProblemTag,
-)
-from app.models.solved_problem import (
-    SolvedProblem,
-)
+from app.models.judge_case_result import JudgeCaseResult
+from app.models.leaderboard import Leaderboard
+from app.models.problem_tag import ProblemTag
+from app.models.solved_problem import SolvedProblem
