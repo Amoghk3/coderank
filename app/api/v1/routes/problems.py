@@ -193,25 +193,3 @@ async def delete_problem(
         problem_id,
     )
 
-@router.get("/search")
-async def search_problems(
-    db: Annotated[
-        AsyncSession,
-        Depends(get_db),
-    ],
-
-    difficulty: str | None = None,
-
-    tag: str | None = None,
-
-    q: str | None = Query(
-        default=None,
-    ),
-):
-
-    return await ProblemService.search_problems(
-        db,
-        difficulty,
-        tag,
-        q,
-    )

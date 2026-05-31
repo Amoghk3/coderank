@@ -1,19 +1,15 @@
 from typing import Annotated
 
-from fastapi import (
-    APIRouter,
-    Depends,
-)
+from fastapi import APIRouter, Depends
 
-from sqlalchemy import desc
+from sqlalchemy import select, desc
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 
-from app.models.leaderboard import (
-    Leaderboard,
-)
+from app.models.leaderboard import Leaderboard
+from app.models.user import User
 
 
 router = APIRouter(
@@ -31,8 +27,14 @@ async def get_leaderboard(
 ):
 
     result = await db.execute(
-        Leaderboard.__table__
-        .select()
+        select(
+            Leaderboard,
+            User.email,
+        )
+        .join(
+            User,
+            Leaderboard.user_id == User.id,
+        )
         .order_by(
             desc(
                 Leaderboard.total_score
@@ -41,4 +43,25 @@ async def get_leaderboard(
         .limit(100)
     )
 
-    return result.mappings().all()
+    rows = result.all()
+
+    leaderboard = []
+
+    for rank, (lb, email) in enumerate(
+        rows,
+        start=1,
+    ):
+        leaderboard.append(
+            {
+                "rank": rank,
+                "user_id": lb.user_id,
+                "email": email,
+                "accepted_count": lb.accepted_count,
+                "total_submissions": lb.total_submissions,
+                "total_score": lb.total_score,
+                "best_runtime_ms": lb.best_runtime_ms,
+                "updated_at": lb.updated_at,
+            }
+        )
+
+    return leaderboard
